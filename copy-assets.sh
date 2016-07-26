@@ -2,7 +2,8 @@
 # copy-assets.sh - Search for roms, and copy associated assets to designated folders
 # by Rodney Fisk <xizdaqrian@gmail.com>
 
-MAME_PATH="$1"
+SRC_PATH="$1"
+DST_PATH="$2"
 
 
 print_help() {
@@ -35,7 +36,7 @@ copy_files() {
 
     for ASSET_FOLDER in artwork bosses cabinets cpanel flyers gameover icons manuals marquees \
         snap cabs ; do
-        check_for_folder "$MAME_FOLDER"/"$ASSET_FOLDER"
+        check_for_folder "$SRC_PATH"/"$ASSET_FOLDER"
     done
 }
 
