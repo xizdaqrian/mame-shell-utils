@@ -47,5 +47,8 @@ copy_files() {
 # TODO: put folder list into an array, and parse it from options given
 # TODO: operate from blacklist or whitelist, regarding which folders to parse
 # TODO: use a set of arrays, or temp files, instead of churning the disk
+# TODO: create subfolders in DST_PATH, if that's needed
 #.........................................................................#
 
+#.......................: DONE :..........................................#
+#.........................................................................#
