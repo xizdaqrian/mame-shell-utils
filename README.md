@@ -18,3 +18,6 @@ their respective folders.
 Let's say you have downloaded all weekend, and you have all the latest ROMS,
 progettosnaps files, manuals, and everything. You need a way to import **only**
 the stuff you already have. That's where this script comes in. 
+
+15-Aug-2016 - copy-assets has basic functionality. Not much in the way of
+options. More robustness is to come.
