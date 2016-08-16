@@ -3,11 +3,13 @@
 # assets2.sh
 # by Rodney Fisk <xizdaqrian@gmail.com>
 # search ROM folder & copy matching assets to appropriate folders
+# Version: 0.6b
+# Last modified: Tue, 16 Aug 2016 18:00:47 -0500
 #...............................................................................
 
 check_rom_folder() {
     # Check for ROM folder in DEST
-    # TODO: Let any name be the rom folder, not just 'roms'
+    # TODO - Let any name be the rom folder, not just 'roms'
     readonly ROM_FOLDER=$(find "$DEST" -maxdepth 1 -iname "roms")
     if [ ! -d "$ROM_FOLDER" ]; then
         echo "Rom folder ${tRed}not found${tReset} in $DEST. Check your folders."
@@ -37,20 +39,37 @@ check_rom_folder() {
     fi
 }
 
+clear_logfile() {
+    rm -f "$LOGFILE"
+}
+
 process_assets() {
+    # asset folder
+    readonly a_folder="$1"
     # source folder
-    s_folder="$SRC"/"$1"
-    d_folder="$DEST"/"$1"
+    readonly s_folder="$SRC"/"$1"
+    # destination folder
+    readonly d_folder="$DEST"/"$1"
+    # Number of assets copied (from this folder)
+    n_assets=0
     for rom in "${ROMS[@]}"
     do
-        # TODO: Decide what to do about other suffixes. Most likely a for loop
-        if [ -f "$s_folder"/"$rom".png ]; then
-            echo "Asset found for $rom"
-            cp -uv -t "$d_folder" "$s_folder"/"$rom".png
+        # Everything is png, except for manuals.
+        # if it's the manuals folder, and an appropriate pdf is in there,
+        # copy it.
+        # Else, copy the appropriate png.
+        if [ "$a_folder" = "[Mm]anuals" ] && [ -f "$folder"/"$rom".pdf ]; then
+            cp -uv -t "$d_folder" "$s_folder"/"$rom".pdf | tee -a "$LOGFILE"
+            ((n_assets++))
+        elif [ -f "$s_folder"/"$rom".png ]; then
+            cp -uv -t "$d_folder" "$s_folder"/"$rom".png | tee -a "$LOGFILE"
+            ((n_assets++))
         else
-            echo "Asset -not- found for $rom"
+            echo "Asset -not- found for $rom" | tee -a "$LOGFILE"
         fi
     done
+
+    echo "Assets found and copied in $a_folder: $n_assets" | tee -a "$LOGFILE"
 }
 
 display_help() {
@@ -64,28 +83,28 @@ make_target_folders() {
     for t_folder in ${ASSETS[@]}; do
         if [ -d "$SRC"/"$t_folder" ]; then
             if [ $( wc -l < <(ls "$SRC"/"$t_folder")) -gt 0 ]; then
-                echo -e "Folder $SRC/$t_folder\t${tGreen}found${tReset}, and contains assets"
+                echo "Folder $SRC/$t_folder found, and contains assets" | tee -a "$LOGFILE"
                 mkdir -pv "$DEST"/"$t_folder"
                 process_assets "$t_folder"
                 ((n_folders++))
             else
-                echo "...................................."
-                echo ".   Skipping... no assets found    ."
-                echo "...................................."
+                #echo "...................................."
+                echo "Folder $SRC/$t_folder empty: Skipping..." | tee -a "$LOGFILE"
+                #echo "...................................."
             fi
         else
-            echo "$t_folder\t${tRed}not found${tReset}... skipping"
+            echo "$t_folder not found: SKipping..." | tee -a "$LOGFILE"
         fi
     done
     if [ $n_folders -eq 0 ]; then
-        echo "...................................."
-        echo ". Nothing to do... no assets found ."
-        echo "...................................."
+        #echo "...................................."
+        echo " Nothing to do: no assets found..."  | tee -a "$LOGFILE"
+        #echo "...................................."
         exit 1
     else
-        echo "...................................."
-        echo ". $n_folders asset folders found          ."
-        echo "...................................."
+        #echo "...................................."
+        echo "ASset folders found: $n_folders" | tee -a "$LOGFILE"
+        #echo "...................................."
     fi
 }
 
@@ -97,15 +116,19 @@ if [ $# != 2 ] || [ -z $1 ] || [ -z $2 ] || [ "$2" = "/" ]; then
 fi
 
 # Colors
-tReset="$(tput sgr0)"
-tRed="$(tput setaf 1)"
-tGreen="$(tput setaf 2)"
+readonly tReset="$(tput sgr0)"
+readonly tRed="$(tput setaf 1)"
+readonly tGreen="$(tput setaf 2)"
+
 unset ASSETS
 readonly ASSETS=( artwork bosses cabinets cpanel flyers gameover icons manuals \
     marquees snap )
 SCRIPT_NAME=$( basename "$0" .sh )
-SRC="$1"
-DEST="$2"
+readonly SRC="$1"
+readonly DEST="$2"
+readonly LOGFILE="~/copy-assets.log"
+# TODO - Setup getopts to get better input checking
 
-check_rom_folder
+clear_logfile
+check_rom_folder            # Calls process_assets
 make_target_folders
